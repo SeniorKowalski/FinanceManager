@@ -1,3 +1,5 @@
+package ru.kowaslki;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -14,10 +16,6 @@ public class Server {
     public static final int PORT = 8989;
     FinanceManager financeManager = new FinanceManager();
 
-    public void Server() {
-
-    }
-
     public void start() throws RuntimeException {
 
         try (ServerSocket serverSocket = new ServerSocket(Server.PORT)) {
@@ -29,7 +27,7 @@ public class Server {
                 ) {
                     System.out.println("Server started!");
                     financeManager.addToPurchaseList(requestManager(in));
-                    out.println(financeManager.maxCategory().toString());
+                    out.println(financeManager.maxCategory(financeManager.maxCategoryMap).toString());
                 }
             }
         } catch (IOException e) {

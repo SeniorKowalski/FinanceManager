@@ -1,3 +1,5 @@
+package ru.kowaslki;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -17,7 +19,7 @@ public class FinanceManager {
     File file = new File(FILE_NAME);
     List<Purchase> purchaseList = new ArrayList<>();
     private Map<String, String> categoryMap;
-    private Map<String, Long> maxCategoryMap = new HashMap<>();
+    public Map<String, Long> maxCategoryMap = new HashMap<>();
 
     public void addToPurchaseList(Purchase purchase) {
         setPurchaseCategory(file);
@@ -32,16 +34,16 @@ public class FinanceManager {
         }
     }
 
-    public JsonObject maxCategory() {
+    public JsonObject maxCategory(Map<String, Long> argumentMap) {
 
-        Long maxValue = maxCategoryMap.entrySet().stream()
+        Long maxValue = argumentMap.entrySet().stream()
                 .max((val1, val2) -> val1.getValue() > val2.getValue() ? 1 : -1)
                 .get().getValue();
-        String maxCategory = maxCategoryMap.entrySet().stream()
+        String maxCategory = argumentMap.entrySet().stream()
                 .max((val1, val2) -> val1.getValue() > val2.getValue() ? 1 : -1)
                 .get().getKey();
 
-        String jsonString = "{'maxCategory': {'category': %s,'sum': %s}}".formatted(maxCategory, maxValue);
+        String jsonString = "{'maxCategory': {'category': " + maxCategory + ",'sum': " + maxValue + "}}";
 
         return (JsonObject) JsonParser.parseString(jsonString);
 
