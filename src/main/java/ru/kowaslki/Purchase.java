@@ -2,11 +2,12 @@ package ru.kowaslki;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Data
-public class Purchase {
+public class Purchase implements Serializable {
 
     private String title;
     private LocalDate parsedDate;
