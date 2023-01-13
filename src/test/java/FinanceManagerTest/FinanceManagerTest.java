@@ -27,7 +27,7 @@ public class FinanceManagerTest {
     @Test
     @DisplayName("Max category true")
     public void findMaxCategoryTest() {
-        String res = "{\"maxCategory\":{\"category\":\"разное\",\"sum\":1800}}";
+        String res = "{\"category\":\"разное\",\"sum\":1800}";
         String exp = manager.maxCategory(categoryMap).toString();
         Assertions.assertEquals(res, exp);
     }
@@ -35,7 +35,7 @@ public class FinanceManagerTest {
     @Test
     @DisplayName("Max category false")
     public void maxCategoryFalseTest() {
-        String res = "{\"maxCategory\":{\"category\":\"развлечения\",\"sum\":1500}}";
+        String res = "{\"category\":\"развлечения\",\"sum\":1500}";
         String exp = manager.maxCategory(categoryMap).toString();
         Assertions.assertFalse(Objects.deepEquals(res, exp));
     }
@@ -46,5 +46,4 @@ public class FinanceManagerTest {
         manager.addToPurchaseList(new Purchase("пирожок", "2022.10.08", 50L));
         Assertions.assertTrue(purchaseList != null);
     }
-
 }

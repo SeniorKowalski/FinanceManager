@@ -1,7 +1,6 @@
 package ru.kowaslki;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -21,20 +20,57 @@ public class FinanceManager {
     public void addToPurchaseList(Purchase purchase) {
         setPurchaseCategory(file, purchase);
         purchaseList.add(purchase);
-        // если категория уже есть в списке категорий добавляем к её сумме стоимость покупки:
-        if (maxCategoryMap.containsKey(purchase.getCategory())) {
-            Long sum = maxCategoryMap.get(purchase.getCategory());
-            maxCategoryMap.put(purchase.getCategory(), sum + purchase.getSum());
+        maxCategoryInMap(purchase, maxCategoryMap);
+    }
+
+    // если категория уже есть в списке категорий добавляем к её сумме стоимость покупки:
+    private void maxCategoryInMap(Purchase purchase, Map<String, Long> map) {
+        if (map.containsKey(purchase.getCategory())) {
+            Long sum = map.get(purchase.getCategory());
+            map.put(purchase.getCategory(), sum + purchase.getSum());
         } else {
-            maxCategoryMap.put(purchase.getCategory(), purchase.getSum());
+            map.put(purchase.getCategory(), purchase.getSum());
         }
     }
 
-    public Map<String, Long> getMaxCategoryMap() {
-        return maxCategoryMap;
+    public List<Purchase> getPurchaseList() {
+        return purchaseList;
     }
 
-    // метод ищет максимальную по абсолютным тратам категорию за весь период и возвращает её в виде json-строки
+    // метод считает все максимальные категории по датам и собирает их в json объект
+    public JsonObject maxPeriodCategory(List<Purchase> purchaseList) {
+
+        Map<String, Long> maxPeriodCategoryMap = new HashMap<>();
+        Purchase lastPurchase = purchaseList.get(purchaseList.size() - 1);
+        JsonObject res = new JsonObject();
+
+        res.add("maxCategory", maxCategory(maxCategoryMap));
+
+        purchaseList.stream()
+                .filter(pur -> pur.getPurchaseYear() == lastPurchase.getPurchaseYear())
+                .forEach((val) -> maxCategoryInMap(val, maxPeriodCategoryMap));
+        res.add("maxYearCategory", maxCategory(maxPeriodCategoryMap));
+        maxPeriodCategoryMap.clear();
+
+        purchaseList.stream()
+                .filter(pur -> pur.getPurchaseYear() == lastPurchase.getPurchaseYear())
+                .filter(pur -> pur.getPurchaseMonth() == lastPurchase.getPurchaseMonth())
+                .forEach((val) -> maxCategoryInMap(val, maxPeriodCategoryMap));
+        res.add("maxMonthCategory", maxCategory(maxPeriodCategoryMap));
+        maxPeriodCategoryMap.clear();
+
+        purchaseList.stream()
+                .filter(pur -> pur.getPurchaseYear() == lastPurchase.getPurchaseYear())
+                .filter(pur -> pur.getPurchaseMonth() == lastPurchase.getPurchaseMonth())
+                .filter(pur -> pur.getPurchaseDay() == lastPurchase.getPurchaseDay())
+                .forEach((val) -> maxCategoryInMap(val, maxPeriodCategoryMap));
+        res.add("maxDayCategory", maxCategory(maxPeriodCategoryMap));
+        maxPeriodCategoryMap.clear();
+
+        return res;
+    }
+
+    // метод ищет максимальную по абсолютным тратам категорию и возвращает её в виде json-строки
     public JsonObject maxCategory(Map<String, Long> argumentMap) {
 
         Long maxValue = argumentMap.entrySet().stream()
@@ -44,11 +80,12 @@ public class FinanceManager {
                 .max((val1, val2) -> val1.getValue() > val2.getValue() ? 1 : -1)
                 .get().getKey();
 
-        String jsonString = "{'maxCategory': {'category': " + maxCategory + ",'sum': " + maxValue + "}}";
-
-        return (JsonObject) JsonParser.parseString(jsonString);
-
+        JsonObject cat = new JsonObject();
+        cat.addProperty("category", maxCategory);
+        cat.addProperty("sum", maxValue);
+        return cat;
     }
+
 
     // парсинг файла с категориями и назначение правильной категории новой покупке
     public void setPurchaseCategory(File categoriesFile, Purchase purchase) {
@@ -75,18 +112,14 @@ public class FinanceManager {
 
     // при старте сервера загружаем из bin-файла список покупок и получаем актуальную статистику по категориям
     public void loadFromBin(File binFile) {
-        List<Purchase> purchasesForLoad = new ArrayList<>();
+        List<Purchase> purchasesForLoad;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(binFile))) {
             purchasesForLoad = (List<Purchase>) in.readObject();
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        }
-        try {
             for (Purchase purchase :
                     purchasesForLoad) {
                 addToPurchaseList(purchase);
             }
-        } catch (NullPointerException e) {
+        } catch (ClassNotFoundException | IOException | NullPointerException e) {
             e.printStackTrace();
         }
     }
