@@ -34,7 +34,7 @@ public class Server {
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
                 ) {
                     financeManager.saveToBin(binFile, requestManager(in));
-                    out.println(financeManager.maxCategory(financeManager.getMaxCategoryMap()).toString());
+                    out.println(financeManager.maxPeriodCategory(financeManager.getPurchaseList()).toString());
                 }
             }
         } catch (IOException e) {
@@ -43,6 +43,7 @@ public class Server {
         }
     }
 
+    // Здесь сериализуем полученную json строку в объект класса Purchase
     public static Purchase requestManager(BufferedReader in) throws IOException {
         Purchase purchase;
         GsonBuilder gsonBuilder = new GsonBuilder();
